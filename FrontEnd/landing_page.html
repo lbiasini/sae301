@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>AquaVision</title>
+    <link rel="icon" type="image/png" href="logo_svg.svg">
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "rgb(224 233 241);",
+                        "background-dark": "#101c22",
+                        "abyss": "#080f13",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* CSS Overlay Transition */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+            filter: url('#goo');
+            padding: 0 -10px;
+        }
+
+        .transition-strip {
+            flex: 1;
+            height: 100%;
+            background-color: #101c22;
+            transform: scaleY(0);
+            transform-origin: top;
+            margin: 0 -5px;
+        }
+
+        /* Rolling Text Nav */
+        .nav-roll {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            line-height: 1.2;
+            text-decoration: none;
+        }
+
+        .nav-roll span {
+            display: block;
+            transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+
+        .nav-roll::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+            color: #1193d4;
+        }
+
+        .nav-roll:hover span,
+        .nav-roll:hover::after {
+            transform: translateY(-100%);
+        }
+    </style>
+</head>
+
+<body data-barba="wrapper"
+    class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200 overflow-x-hidden">
+
+    <div id="splash-screen" class="fixed inset-0 z-50 pointer-events-none">
+        <div id="splash-bg" class="absolute inset-0 bg-background-light dark:bg-background-dark w-full h-full"></div>
+        <div id="splash-content"
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3 text-primary z-10">
+            <div class="size-16 z-20 relative">
+                <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_intro)">
+                        <path
+                            d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
+                            fill="currentColor"></path>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_intro">
+                            <rect fill="white" height="48" width="48"></rect>
+                        </clipPath>
+                    </defs>
+                </svg>
+            </div>
+            <div class="overflow-hidden z-10">
+                <h2 id="splash-text" class="text-4xl font-bold translate-x-[-120%] opacity-0 whitespace-nowrap">
+                    AquaVision</h2>
+            </div>
+        </div>
+    </div>
+
+    <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg"
+        version="1.1">
+        <defs>
+            <filter id="goo">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -9"
+                    result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+            </filter>
+        </defs>
+    </svg>
+    <div class="transition-overlay">
+        <div class="transition-strip"></div>
+        <div class="transition-strip"></div>
+        <div class="transition-strip"></div>
+        <div class="transition-strip"></div>
+        <div class="transition-strip"></div>
+        <div class="transition-strip"></div>
+        <div class="transition-strip"></div>
+    </div>
+
+    <div data-barba="container" data-barba-namespace="home" class="relative w-full flex flex-col">
+
+        <header id="site-header"
+            class="opacity-0 fixed top-0 left-0 right-0 z-50 flex items-center justify-between whitespace-nowrap px-10 py-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-primary/20">
+            <div id="header-logo-container" class="flex items-center gap-3 text-primary">
+                <div class="size-8">
+                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_6_319)">
+                            <path
+                                d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
+                                fill="currentColor"></path>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_6_319">
+                                <rect fill="white" height="48" width="48"></rect>
+                            </clipPath>
+                        </defs>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold">AquaVision</h2>
+            </div>
+
+            <nav class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8">
+                <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="landing_page.html"
+                    data-text="Accueil" data-barba-prevent><span>Accueil</span></a>
+                <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="map.html"
+                    data-text="Carte Interactive"><span>Carte Interactive</span></a>
+                <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="stats.php"
+                    data-text="Graphiques"><span>Graphiques</span></a>
+                <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="Sources.html"
+                    data-text="Sources"><span>Sources</span></a>
+            </nav>
+            <div class="flex items-center gap-8"></div>
+        </header>
+
+        <main id="hero-content"
+            class="opacity-0 relative h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-background-light dark:bg-background-dark"></div>
+            </div>
+
+            <div id="hero-text-container" class="relative z-10 text-center text-dark max-w-4xl mx-auto p-8">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight mb-4">
+                    Plongez au Cœur de l'Océan
+                </h1>
+                <p class="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 font-light text-dark">
+                    Découvrez notre projet dédié à la visualisation des écosystèmes marins. Explorez nos données,
+                    visualisez l'état des oceans.
+                </p>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <button
+                        class="btn-liquid relative overflow-hidden group px-6 h-12 flex items-center justify-center rounded-lg bg-primary text-white text-base font-bold shadow-lg transition-colors">
+                        <span class="relative z-10 group-hover:text-primary transition-colors duration-300">Carte
+                            Interactive</span>
+                    </button>
+
+                    <a href="stats.php"
+                        class="btn-liquid relative overflow-hidden group px-6 h-12 flex items-center justify-center rounded-lg bg-primary dark:bg-background-dark/20 text-white text-base font-bold dark:hover:bg-background-dark/30 transition-colors">
+                        <span
+                            class="relative z-10 group-hover:text-primary dark:group-hover:text-white transition-colors duration-300">Graphiques</span>
+                    </a>
+                </div>
+            </div>
+
+            <button id="scroll-down-btn"
+                class="absolute bottom-10 z-20 flex flex-col items-center gap-2 text-white/70 hover:text-primary transition-colors duration-300 group cursor-pointer">
+                <span
+                    class="text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">Découvrir</span>
+                <div
+                    class="p-3 rounded-full border border-white/20 bg-background-dark/30 backdrop-blur-sm group-hover:border-primary/50 group-hover:bg-primary/10 transition-all duration-300 animate-bounce">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+                    </svg>
+                </div>
+            </button>
+        </main>
+
+        <section id="project-section"
+            class="relative z-20 w-full min-h-screen bg-abyss text-gray-200 py-32 px-10 flex items-center">
+            <div
+                class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none">
+            </div>
+
+            <div class="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div class="space-y-6">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        Projet Universitaire 2025-2026
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-bold leading-tight">
+                        Un Projet d'analyse<br> <span class="text-primary">et de compréhension</span>
+                    </h2>
+                    <p class="text-lg text-gray-400 font-light leading-relaxed">
+                        AquaVision est né de la volonté de rendre accessibles les données complexes sur la santé de nos
+                        océans. Notre équipe d'étudiants a développé cette application web permettant de croiser des millions
+                        de relevés bathymétriques et biologiques.
+                    </p>
+                    <div class="pt-4 border-t border-white/10 mt-8">
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-primary"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg> Note sur les données</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            Il arrive fréquemment que les satellites ne puissent pas capturer de mesures (couverture nuageuse, orbites, maintenance). Ces valeurs apparaissent alors comme "N/A" dans nos graphiques.
+                        </p>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-r from-primary to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200">
+                    </div>
+                    <div
+                        class="relative bg-background-dark border border-white/10 rounded-2xl p-8 h-auto min-h-[400px] flex items-center justify-center overflow-hidden">
+                        <div class="absolute inset-0 opacity-30"
+                            style="background-image: radial-gradient(#1193d4 1px, transparent 1px); background-size: 20px 20px;">
+                        </div>
+                        
+                        <div class="relative z-10 grid grid-cols-2 gap-6 w-full">
+                            <div class="text-center p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5 hover:border-primary/30 transition-colors">
+                                <span class="block text-4xl font-bold text-primary mb-1">3.5M</span>
+                                <span class="text-sm text-gray-400">Points de données</span>
+                            </div>
+                            <div class="text-center p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5 hover:border-primary/30 transition-colors">
+                                <span class="block text-4xl font-bold text-primary mb-1">5</span>
+                                <span class="text-sm text-gray-400">Océans couverts</span>
+                            </div>
+                            <div class="text-center p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5 hover:border-primary/30 transition-colors">
+                                <span class="block text-4xl font-bold text-primary mb-1">20+</span>
+                                <span class="text-sm text-gray-400">Années d'historique</span>
+                            </div>
+                            <div class="text-center p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5 hover:border-primary/30 transition-colors">
+                                <span class="block text-4xl font-bold text-primary mb-1">3</span>
+                                <span class="text-sm text-gray-400">Satellites sources</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="https://unpkg.com/@barba/core"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
+
+        // --- 1. PARALLAXE (Mesmerizing) ---
+        // Animation de l'image de fond au scroll
+        gsap.to("#hero-bg-img", {
+            scrollTrigger: {
+                trigger: "#hero-content",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            },
+            yPercent: 30, // Mouvement plus lent que le scroll
+            scale: 1.1,   // Léger zoom
+            ease: "none"
+        });
+
+        // Animation du texte qui disparait plus vite
+        gsap.to("#hero-text-container", {
+            scrollTrigger: {
+                trigger: "#hero-content",
+                start: "top top",
+                end: "bottom center",
+                scrub: true
+            },
+            y: -100,
+            opacity: 0,
+            ease: "none"
+        });
+
+        // --- 3. ACTION DU BOUTON SCROLL ---
+        const scrollBtn = document.getElementById('scroll-down-btn');
+        if (scrollBtn) {
+            scrollBtn.addEventListener('click', () => {
+                // Le bouton lance le scroll, le ScrollTrigger gère l'effet visuel
+                gsap.to(window, {
+                    scrollTo: "#project-section",
+                    duration: 1.5,
+                    ease: "power4.inOut"
+                });
+            });
+        }
+
+        // --- 4. BARBA / INTRO ---
+        // Hook global pour exécuter les scripts (comme ceux de stats.php) après la transition
+        barba.hooks.after((data) => {
+            const js = data.next.container.querySelectorAll('script');
+            js.forEach((item) => {
+                const script = document.createElement('script');
+                if (item.src) {
+                    script.src = item.src;
+                } else {
+                    script.innerHTML = item.innerHTML;
+                }
+                document.body.appendChild(script);
+            });
+        });
+
+        barba.init({
+            sync: true,
+            transitions: [{
+                name: 'transition-curtain',
+
+                // C'est ici que se joue l'animation d'ouverture
+                once(data) {
+                    const tl = gsap.timeline();
+
+                    // 1. Le texte AquaVision glisse de derrière le logo (vers la droite)
+                    tl.to("#splash-text", {
+                        x: 0,
+                        opacity: 1,
+                        duration: 1.2,
+                        ease: "power3.out",
+                        delay: 0.2
+                    })
+
+                        // 2. Le groupe (Logo + Texte) se déplace vers le haut gauche et rétrécit
+                        // Nous calculons approximativement pour matcher la position du header
+                        .to("#splash-content", {
+                            top: "32px",   // Position verticale finale (ajustez selon votre padding header)
+                            left: "180px",  // Position horizontale finale
+                            x: 0,          // Reset du centrage flex
+                            y: 0,
+                            scale: 0.5,    // Réduction de taille (Logo 16 -> 8, Text 4xl -> xl)
+                            position: "fixed", // On sort du flux centré
+                            transformOrigin: "left center", // Important pour que ça aille à gauche
+                            duration: 1,
+                            ease: "power3.inOut"
+                        }, "+=0.3") // Petit délai avant de bouger
+
+                        // En même temps, on déplace le conteneur parent pour qu'il ne soit plus centré
+                        .to("#splash-screen", {
+                            justifyContent: "flex-start",
+                            alignItems: "flex-start",
+                            padding: 0,
+                            duration: 1,
+                            ease: "power3.inOut"
+                        }, "<") // "<" signifie "commence en même temps que l'anim précédente"
+
+                        // 3. Transition fluide : On fait disparaître le splash et apparaître le vrai header
+                        .to("#splash-screen", {
+                            opacity: 0,
+                            duration: 0.5,
+                            pointerEvents: "none", // Pour pouvoir cliquer dessous
+                            onComplete: () => {
+                                document.getElementById('splash-screen').style.display = 'none';
+                            }
+                        })
+                        .to("#site-header", {
+                            opacity: 1,
+                            duration: 0.5
+                        }, "<") // Le header apparaît pendant que le splash disparaît (seamless)
+
+                        // 4. Apparition du contenu principal (Hero)
+                        .to("#hero-content", {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.8,
+                            ease: "power2.out"
+                        }, "-=0.3");
+                },
+
+                // Vos transitions de page existantes
+                leave(data) {
+                    const done = this.async();
+                    gsap.to('.transition-strip', {
+                        scaleY: 1,
+                        transformOrigin: 'top',
+                        stagger: { each: 0.08, from: "random" },
+                        duration: 0.8,
+                        ease: 'power3.inOut',
+                        onComplete: done
+                    });
+                },
+                enter(data) {
+                    // Important : Assurez-vous que le header/main sont visibles lors des transitions normales
+                    gsap.set("#site-header, #hero-content", { opacity: 1 });
+
+                    gsap.set('.transition-strip', { transformOrigin: 'bottom', scaleY: 1 });
+                    gsap.to('.transition-strip', {
+                        scaleY: 0,
+                        stagger: { each: 0.05, from: "end" },
+                        duration: 0.8,
+                        delay: 0.1,
+                        ease: 'power3.inOut'
+                    });
+                }
+            }]
+        });
+
+        // --- ANIMATION BOUTONS LIQUIDE (STYLE GSAP) ---
+        const buttons = document.querySelectorAll('.btn-liquid');
+
+        buttons.forEach(btn => {
+            // 1. Création dynamique de l'élément "cercle" qui va grandir
+            const circle = document.createElement('span');
+            circle.className = "absolute bg-white rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2";
+
+            // On le rend assez grand pour couvrir tout le bouton (diamètre = largeur * 2.5)
+            const diameter = Math.max(btn.clientWidth, btn.clientHeight) * 2.5;
+            circle.style.width = `${diameter}px`;
+            circle.style.height = `${diameter}px`;
+
+            // Au départ, il est invisible (scale 0)
+            gsap.set(circle, { scale: 0, opacity: 1 });
+
+            // On l'ajoute au bouton
+            btn.appendChild(circle);
+
+            // 2. Événement Entrée de souris
+            btn.addEventListener('mouseenter', (e) => {
+                // On récupère la position de la souris relative au bouton
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // On place le cercle sous la souris et on le fait grandir
+                gsap.fromTo(circle,
+                    { x: x, y: y, scale: 0 },
+                    { scale: 1, duration: 0.4, ease: "power2.out" }
+                );
+            });
+
+            // 3. Événement Sortie de souris
+            btn.addEventListener('mouseleave', (e) => {
+                // On récupère la position de sortie
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // On déplace le cercle vers la sortie tout en le rétrécissant
+                gsap.to(circle, {
+                    x: x,
+                    y: y,
+                    scale: 0,
+                    duration: 0.4,
+                    ease: "power2.in"
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

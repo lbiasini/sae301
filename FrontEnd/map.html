@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>AquaVision - Carte</title>
+  <link rel="icon" type="image/png" href="logo_svg.svg">
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: { "primary": "#1193d4", "background-light": "rgb(224 233 241);", "background-dark": "#101c22" },
+          fontFamily: { "display": ["Space Grotesk", "sans-serif"] },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }
+        }
+      }
+    }
+  </script>
+  <style>
+    .background-video { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; object-fit: cover; transform: translate(-50%, -50%); z-index: -1; opacity: 0.15; }
+    .transition-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 9999; pointer-events: none; display: flex; filter: url('#goo'); padding: 0 -10px; }
+    .transition-strip { flex: 1; height: 100%; background-color: #101c22; transform: scaleY(0); transform-origin: top; margin: 0 -5px; }
+    .nav-roll { position: relative; overflow: hidden; display: inline-block; line-height: 1.2; text-decoration: none; }
+    .nav-roll span { display: block; transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1); }
+    .nav-roll::after { content: attr(data-text); position: absolute; top: 100%; left: 0; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1); color: #1193d4; }
+    .nav-roll:hover span, .nav-roll:hover::after { transform: translateY(-100%); }
+    .mapboxgl-popup-content { border-radius: 12px; color: #1e293b; padding: 15px; border: 1px solid #1193d4; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+  </style>
+</head>
+
+<body data-barba="wrapper" class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+
+  <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" /><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -9" result="goo" /><feComposite in="SourceGraphic" in2="goo" operator="atop" /></filter></defs>
+  </svg>
+
+  <div class="transition-overlay">
+    <div class="transition-strip"></div><div class="transition-strip"></div><div class="transition-strip"></div><div class="transition-strip"></div><div class="transition-strip"></div><div class="transition-strip"></div><div class="transition-strip"></div>
+  </div>
+
+  <div data-barba="container" data-barba-namespace="map" class="relative min-h-screen w-full flex flex-col">
+    <header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-primary/20">
+      <div class="flex items-center gap-3 text-primary"><h2 class="text-xl font-bold">AquaVision</h2></div>
+      <nav class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8">
+        <a class="nav-roll text-sm font-medium" href="landing_page.html" data-text="Accueil" data-barba-prevent><span>Accueil</span></a>
+        <a class="nav-roll text-sm font-medium" href="map.html" data-text="Carte Interactive"><span>Carte Interactive</span></a>
+        <a class="nav-roll text-sm font-medium" href="stats.php" data-text="Graphiques"><span>Graphiques</span></a>
+        <a class="nav-roll text-sm font-medium" href="Sources.html" data-text="Sources"><span>Sources</span></a>
+      </nav>
+    </header>
+
+    <main class="flex-grow relative overflow-hidden">
+      <div id="map" class="absolute inset-0 w-full h-full"></div>
+      <div id="map-loader" class="absolute top-24 left-1/2 -translate-x-1/2 z-50 bg-white/90 dark:bg-slate-800/90 px-4 py-2 rounded-full shadow-lg border border-primary/20 flex items-center gap-3 transition-opacity duration-500 opacity-0 pointer-events-none">
+        <div class="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-xs font-medium text-slate-800 dark:text-white">Chargement des données NOAA en cours...</span>
+      </div>
+
+      <script>
+        window.initMapPage = function() {
+          console.log("Démarrage de la carte fusionnée...");
+          if (typeof mapboxgl === 'undefined') return;
+          const mapDiv = document.getElementById('map');
+          if (!mapDiv) return;
+
+          mapboxgl.accessToken = 'pk.eyJ1IjoibHVjYTkxIiwiYSI6ImNta2F6emphbzF5bmwzY3F4MHUwYTdtcDQifQ.vJe-Rgu9f41PPChPOVG9qg';
+          const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000/api' : 'https://sae301.onrender.com/api';
+
+          const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v11',
+            center: [2, 46],
+            zoom: 5
+          });
+
+          const loader = document.getElementById('map-loader');
+
+          map.on('load', async () => {
+            if (loader) loader.classList.add('opacity-100');
+            try {
+              // On récupère les données NOAA et le Cache en même temps
+              const [resDisc, resCache] = await Promise.all([
+                fetch(`${API_BASE_URL}/map/discovery`),
+                fetch(`${API_BASE_URL}/map-points`)
+              ]);
+
+              const geoDisc = await resDisc.json();
+              const geoCache = await resCache.json();
+
+              // Fusion des deux sources GeoJSON
+              const combinedFeatures = [
+                ...(geoDisc.features || []),
+                ...(geoCache.features || [])
+              ];
+
+              map.addSource('ocean-data', {
+                type: 'geojson',
+                data: {
+                  type: 'FeatureCollection',
+                  features: combinedFeatures
+                }
+              });
+
+              // On dessine les points avec des cercles (GPU) pour la fluidité
+              map.addLayer({
+                id: 'points-layer',
+                type: 'circle',
+                source: 'ocean-data',
+                paint: {
+                  'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 4, 10, 12],
+                  'circle-color': '#1193d4',
+                  'circle-stroke-width': 2,
+                  'circle-stroke-color': '#ffffff',
+                  'circle-opacity': 0.8
+                }
+              });
+
+              // Popup fusionnée : Temp, Sel et Chlo
+              map.on('click', 'points-layer', (e) => {
+                const props = e.features[0].properties;
+                
+                // Formatage propre des valeurs
+                const temp = props.temp && props.temp !== 'null' ? `${props.temp} °C` : 'N/A';
+                const salt = props.salt && props.salt !== 'null' ? `${props.salt} PSU` : 'N/A';
+                const chla = props.chla && props.chla !== 'null' ? `${props.chla} mg/m³` : 'N/A';
+
+                new mapboxgl.Popup()
+                  .setLngLat(e.lngLat)
+                  .setHTML(`
+                    <div class="text-xs space-y-1">
+                      <p class="font-bold border-b mb-2 text-primary text-sm">Station NOAA</p>
+                      <p>🌡️ Température: <b class="text-red-500">${temp}</b></p>
+                      <p>💧 Salinité: <b class="text-blue-500">${salt}</b></p>
+                      <p>🌿 Chlorophylle: <b class="text-green-500">${chla}</b></p>
+                      <p class="text-[9px] mt-2 pt-1 border-t text-gray-400 italic">Relevé: ${props.date || 'Récents'}</p>
+                    </div>
+                  `).addTo(map);
+              });
+
+              map.on('mouseenter', 'points-layer', () => map.getCanvas().style.cursor = 'pointer');
+              map.on('mouseleave', 'points-layer', () => map.getCanvas().style.cursor = '');
+
+            } catch (err) {
+              console.error("Erreur de chargement des données:", err);
+            } finally {
+              if (loader) loader.classList.remove('opacity-100');
+            }
+          });
+
+          // Correction pour éviter la zone blanche après transition
+          setTimeout(() => map.resize(), 500);
+        };
+
+        // Lancement initial
+        if (document.readyState === 'complete') window.initMapPage();
+        else window.addEventListener('load', window.initMapPage);
+      </script>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@barba/core"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script>
+    barba.hooks.after((data) => {
+      // Re-initialisation après navigation Barba
+      if (data.next.namespace === 'map') {
+        setTimeout(() => {
+          if (typeof window.initMapPage === 'function') window.initMapPage();
+        }, 500);
+      }
+    });
+
+    barba.init({
+      sync: true,
+      transitions: [{
+        name: 'transition-curtain',
+        leave(data) {
+          const done = this.async();
+          gsap.to('.transition-strip', { scaleY: 1, stagger: 0.08, duration: 0.8, onComplete: done });
+        },
+        enter(data) {
+          gsap.set('.transition-strip', { transformOrigin: 'bottom', scaleY: 1 });
+          gsap.to('.transition-strip', { scaleY: 0, stagger: 0.05, duration: 0.8, delay: 0.1 });
+        }
+      }]
+    });
+  </script>
+</body>
+</html>
