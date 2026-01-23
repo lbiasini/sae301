@@ -155,7 +155,7 @@
           data-text="Accueil" data-barba-prevent><span>Accueil</span></a>
         <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="map.html"
           data-text="Carte Interactive"><span>Carte Interactive</span></a>
-        <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="stats.php"
+        <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="stats.html"
           data-text="Graphiques"><span>Graphiques</span></a>
         <a class="nav-roll text-sm font-medium text-gray-800 dark:text-gray-200" href="Sources.html"
           data-text="Sources"><span>Sources</span></a>
@@ -180,60 +180,41 @@
             <h2 class="text-3xl font-bold">Sources de Données</h2>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- ERDDAP -->
-            <div class="source-item bg-white/50 dark:bg-background-dark/50 rounded-2xl p-6 shadow-sm">
-              <div class="flex items-center gap-4 mb-4">
-                <div class="size-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-blue-600 dark:text-blue-400" fill="none"
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- ERDDAP - AGGRANDI -->
+            <div class="source-item bg-white/50 dark:bg-background-dark/50 rounded-2xl p-8 shadow-sm">
+              <div class="flex items-center gap-6 mb-6">
+                <div class="size-16 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="size-8 text-blue-600 dark:text-blue-400" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold">ERDDAP</h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">NOAA Data Server</p>
+                  <h3 class="text-2xl font-bold">ERDDAP</h3>
+                  <p class="text-lg text-gray-500 dark:text-gray-400">NOAA Data Server</p>
                 </div>
               </div>
-              <p class="text-gray-700 dark:text-gray-300 mb-4">
+              <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">
                 Plateforme de données océanographiques en temps réel fournissant des données sur la température, salinité,
-                chlorophylle, et autres paramètres marins.
+                chlorophylle, et autres paramètres marins. Elle permet d'accéder à des jeux de données provenant de diverses
+                sources, notamment des satellites, des bouées, des navires et des modèles numériques.
               </p>
-              <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank"
-                class="inline-flex items-center text-primary hover:text-primary/80 font-medium">
-                <span>Accéder au site</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ml-2" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
-
-            <!-- Copernicus Marine Service -->
-            <div class="source-item bg-white/50 dark:bg-background-dark/50 rounded-2xl p-6 shadow-sm">
-              <div class="flex items-center gap-4 mb-4">
-                <div class="size-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-green-600 dark:text-green-400" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-xl font-bold">Copernicus</h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Marine Service</p>
-                </div>
+              <div class="mb-6">
+                <h4 class="font-bold text-lg mb-2">Données disponibles :</h4>
+                <ul class="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-1">
+                  <li>Température de surface de la mer</li>
+                  <li>Salinité à différentes profondeurs</li>
+                  <li>Concentration en chlorophylle-a</li>
+                  <li>Vitesse et direction des courants</li>
+                  <li>Hauteur des vagues</li>
+                </ul>
               </div>
-              <p class="text-gray-700 dark:text-gray-300 mb-4">
-                Service européen fournissant des données marines et côtières : température de surface, courants, vagues,
-                et données biologiques.
-              </p>
-              <a href="https://marine.copernicus.eu/" target="_blank"
-                class="inline-flex items-center text-primary hover:text-primary/80 font-medium">
-                <span>Accéder au site</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ml-2" fill="none" viewBox="0 0 24 24"
+              <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank"
+                class="inline-flex items-center text-primary hover:text-primary/80 font-medium text-lg">
+                <span>Accéder au site officiel</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -241,29 +222,40 @@
               </a>
             </div>
 
-            <!-- NASA Ocean Color -->
-            <div class="source-item bg-white/50 dark:bg-background-dark/50 rounded-2xl p-6 shadow-sm">
-              <div class="flex items-center gap-4 mb-4">
-                <div class="size-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-purple-600 dark:text-purple-400" fill="none"
+            <!-- NASA Ocean Color - AGGRANDI -->
+            <div class="source-item bg-white/50 dark:bg-background-dark/50 rounded-2xl p-8 shadow-sm">
+              <div class="flex items-center gap-6 mb-6">
+                <div class="size-16 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="size-8 text-purple-600 dark:text-purple-400" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold">NASA Ocean Color</h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Satellite Data</p>
+                  <h3 class="text-2xl font-bold">NASA Ocean Color</h3>
+                  <p class="text-lg text-gray-500 dark:text-gray-400">Satellite Data</p>
                 </div>
               </div>
-              <p class="text-gray-700 dark:text-gray-300 mb-4">
+              <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">
                 Données satellitaires sur la couleur de l'océan, incluant la chlorophylle, les sédiments, et la
-                productivité primaire.
+                productivité primaire. Ces données sont essentielles pour étudier la santé des océans, les blooms
+                algaux, et l'impact du changement climatique sur les écosystèmes marins.
               </p>
+              <div class="mb-6">
+                <h4 class="font-bold text-lg mb-2">Applications principales :</h4>
+                <ul class="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-1">
+                  <li>Surveillance de la productivité primaire</li>
+                  <li>Détection des blooms phytoplanctoniques</li>
+                  <li>Suivi des apports sédimentaires</li>
+                  <li>Étude des cycles biogéochimiques</li>
+                  <li>Modélisation des écosystèmes marins</li>
+                </ul>
+              </div>
               <a href="https://oceancolor.gsfc.nasa.gov/" target="_blank"
-                class="inline-flex items-center text-primary hover:text-primary/80 font-medium">
-                <span>Accéder au site</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4 ml-2" fill="none" viewBox="0 0 24 24"
+                class="inline-flex items-center text-primary hover:text-primary/80 font-medium text-lg">
+                <span>Accéder au portail de données</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-5 ml-2" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -326,10 +318,10 @@
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Moteur d'animation</p>
             </div>
 
-            <!-- Leaflet -->
+            <!-- Mapbox -->
             <div class="tech-card bg-white/50 dark:bg-background-dark/50 rounded-xl p-5 text-center">
               <div class="size-16 mx-auto mb-4 flex items-center justify-center">
-                <div class="text-2xl font-bold text-[#199900]">Leaflet</div>
+                <div class="text-2xl font-bold text-[#199900]">Mapbox</div>
               </div>
               <h4 class="font-bold">Cartographie</h4>
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Cartes interactives</p>
@@ -368,7 +360,7 @@
                 </svg>
               </div>
               <h4 class="font-bold text-lg mb-2">Équipe</h4>
-              <p class="text-gray-600 dark:text-gray-400">Étudiants en développement web et data science</p>
+              <p class="text-gray-600 dark:text-gray-400">Étudiants en développement web</p>
             </div>
 
             <div class="text-center">
@@ -380,8 +372,7 @@
                 </svg>
               </div>
               <h4 class="font-bold text-lg mb-2">Contact</h4>
-              <p class="text-gray-600 dark:text-gray-400">arturo.malivindi@etu.u-pec.fr
-</p>
+              <p class="text-gray-600 dark:text-gray-400">aqua.vision@outlook.fr</p>
             </div>
           </div>
         </div>
