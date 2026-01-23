@@ -60,7 +60,7 @@ class DataController extends Controller
                 // FIX : On demande uniquement la DERNIÈRE donnée disponible (plus rapide et sûr)
                 $url .= "[(last)]"; 
                 if (in_array('altitude', $config['dimensions'])) $url .= "[(0.0)]";
-                $url .= "[(35):2:(55)][(-15):2:(12)]"; // Grille Europe (Pas de 2°)
+                $url .= "[(35):4:(55)][(-15):4:(12)]"; // Grille Europe (Pas de 2°)
 
                 $debug[$dsKey] = ['url' => $url];
 
