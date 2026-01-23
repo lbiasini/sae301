@@ -24,7 +24,7 @@ class DataController extends Controller
             'dimensions' => ['time', 'latitude', 'longitude']
         ],
         // REVISION : Utilisation du dataset journalier (Daily) pour correspondre aux graphiques
-        'noaacwSMOSsssDaily' => [
+        'noaacwSMOSsss3day' => [
             'variable' => 'sss',
             'model' => 'salinite',
             'bdd_field' => 'sss',
