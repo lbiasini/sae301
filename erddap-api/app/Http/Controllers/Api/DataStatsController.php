@@ -59,6 +59,8 @@ class DataStatsController extends Controller
             $zoneSlug = $request->query('zone');
             $dateDebut = $request->query('date_debut');
             $dateFin = $request->query('date_fin');
+            // Modification : On active la prévision par défaut (true) si le paramètre est absent
+            $prediction = $request->boolean('prediction', true);
 
             if (!$zoneSlug || !$dateDebut || !$dateFin) {
                 return response()->json(['error' => 'Paramètres manquants'], 400);
@@ -114,33 +116,53 @@ class DataStatsController extends Controller
                 // Groupement par date pour gérer les éventuels doublons de points
                 $pointsByDate = $existingPoints->groupBy(fn($pm) => substr($pm->dateMesure, 0, 10));
 
+                $lastVal = null;
+
                 foreach ($results['dates'] as $dateStr) {
                     $val = null;
-                    $found = false;
+                    $foundVal = false;
+                    $dbRecordExists = false;
 
                     if ($pointsByDate->has($dateStr)) {
                         // On parcourt tous les points trouvés pour cette date (cas des doublons)
                         foreach ($pointsByDate->get($dateStr) as $point) {
                             $relation = $config['model'];
-                            // Si la relation existe, on prend la valeur et on arrête de chercher
                             if ($point->$relation) {
-                                $val = $point->$relation->{$config['bdd_field']};
-                                $found = true;
-                                break;
+                                $dbRecordExists = true;
+                                $v = $point->$relation->{$config['bdd_field']};
+                                if ($v !== null) {
+                                    $val = $v;
+                                    $foundVal = true;
+                                    break;
+                                }
                             }
                         }
                     }
 
-                    // Si pas trouvé en base, alors seulement on fetch l'API
-                    if (!$found) {
-                        // Optimisation : Ne pas interroger l'API pour le futur (évite les requêtes inutiles)
-                        if ($dateStr > date('Y-m-d')) {
-                            $val = null;
+                    // Logique de décision : DB > Prévision Futur > API
+                    if ($foundVal) {
+                        // Valeur trouvée en BDD, on la garde
+                    } elseif ($dateStr > Carbon::now()->toDateString()) {
+                        // Futur : On génère une prévision si demandé (même si un null existe en cache BDD)
+                        if ($prediction) {
+                            $base = $lastVal ?? match($config['model']) {
+                                'temperature' => 15.0,
+                                'salinite' => 35.0,
+                                'chlorophylle' => 0.5,
+                                default => 10.0
+                            };
+                            $delta = ($config['model'] === 'chlorophylle') ? 0.05 : 0.3;
+                            $val = round($base + (mt_rand(-100, 100) / 100 * $delta), 3);
+                            if ($val < 0) $val = 0;
                         } else {
-                            $val = $this->fetchAndStore($dsId, $lat, $lon, $dateStr);
+                            $val = null;
                         }
+                    } elseif (!$dbRecordExists) {
+                        // Passé/Présent et pas d'enregistrement (même null) en base : On fetch l'API
+                        $val = $this->fetchAndStore($dsId, $lat, $lon, $dateStr);
                     }
 
+                    if ($val !== null) $lastVal = $val;
                     $results[$config['model']][] = $val;
                 }
             }
